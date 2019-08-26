@@ -5,11 +5,9 @@ name := "wikiedits"
 
 scalaVersion := "2.11.8"
 
-lazy val sparkVersion = "2.0.0"
+lazy val sparkVersion = "2.4.0"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
-libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion % "provided"
-libraryDependencies += "org.apache.spark" %% "spark-streaming-kinesis-asl" % sparkVersion
 libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 
 assemblyMergeStrategy in assembly := {
