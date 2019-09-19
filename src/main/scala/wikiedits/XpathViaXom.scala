@@ -4,9 +4,26 @@ import java.io.{ByteArrayInputStream, InputStream, InputStreamReader}
 import java.nio.file.{Path, StandardOpenOption}
 
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
+import javax.xml.transform.sax.{SAXResult, SAXSource, SAXTransformerFactory}
 import nu.xom.{Builder, Document, Nodes}
+import org.xml.sax.InputSource
+import org.xml.sax.helpers.XMLReaderFactory
 
 object XpathViaXom {
+  lazy val ss0 = {
+    val builder = new nu.xom.Builder()
+    val textSs =
+      """
+        |<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        |  xmlns:w="http://www.mediawiki.org/xml/export-0.10/"
+        |  version="1.0">
+        |<xsl:template match="/">
+        |</xsl:template>
+        |</xsl:stylesheet>
+        |""".stripMargin
+    builder.build(new ByteArrayInputStream(textSs.getBytes))
+    textSs
+  }
   lazy val ss1 = {
     val builder = new nu.xom.Builder()
     val textSs =
@@ -33,13 +50,17 @@ object XpathViaXom {
         |</xsl:stylesheet>
       """.stripMargin
     builder.build(new ByteArrayInputStream(textSs.getBytes))
+    textSs
   }
 
-  def filterXslt(stylesheet: Document, doc: Document) = {
+  def filterXslt(stylesheet: String, doc: Document) = {
     import nu.xom.Nodes
     import nu.xom.xslt.XSLTransform
 
-    val transform = new XSLTransform(stylesheet)
+    val builder = new nu.xom.Builder()
+    val sourceSs = builder.build(new ByteArrayInputStream(stylesheet.getBytes))
+
+    val transform = new XSLTransform(sourceSs)
     val output = transform.transform(doc)
     output
   }
@@ -63,13 +84,13 @@ object XpathViaXom {
     }
   }
 
-  def findPageRevisions(path:String): Nodes = {
+  def findPageRevisions(path: String, ss: String): Nodes = {
     val is = openLocal7z(java.nio.file.Paths.get(path))
     import nu.xom.Nodes
     import nu.xom.xslt.XSLTransform
     val builder = new nu.xom.Builder()
     val source = builder.build(is)
-    XpathViaXom.filterXslt(XpathViaXom.ss1, source)
+    XpathViaXom.filterXslt(ss, source)
   }
 
   def main(args: Array[String]): Unit = {
