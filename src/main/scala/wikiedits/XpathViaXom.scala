@@ -8,7 +8,17 @@ import nu.xom.{Builder, Document}
 object XpathViaXom {
   lazy val ss1 = {
     val builder = new nu.xom.Builder()
-    val textSs = """<hello></hello>"""
+    val textSs =
+      """
+        |<xsl:stylesheet version="1.0"
+        |xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        |
+        |<xsl:template match="namespace">
+        |  <xsl:copy></xsl:copy>
+        |</xsl:template>
+        |
+        |</xsl:stylesheet>
+      """.stripMargin
     builder.build(new ByteArrayInputStream(textSs.getBytes))
   }
 
