@@ -13,6 +13,8 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "prov
 libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 
 libraryDependencies += "org.apache.commons" % "commons-compress" % "1.18"
+libraryDependencies += "org.tukaani" % "xz" % "1.8"
+
 libraryDependencies += "com.upplication" % "s3fs" % "2.2.2"
 
 //libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-5"

@@ -79,6 +79,15 @@ class TestXml extends FunSpec {
           println(s"node: ${node.getValue}") //
         }
       }
+      it("should open 7z") {
+        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+        var c = 0
+        for(node <- XpathViaXom.findPageRevisions(path).iterator().asScala) {
+          //println(s"node: ${node.getValue}")
+          c += 1
+        }
+        println(s"found in 7z ${c} revisions")
+      }
     }
   }
 }

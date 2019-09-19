@@ -1,9 +1,10 @@
 package wikiedits
 
 import java.io.{ByteArrayInputStream, InputStream, InputStreamReader}
+import java.nio.file.{Path, StandardOpenOption}
 
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
-import nu.xom.{Builder, Document}
+import nu.xom.{Builder, Document, Nodes}
 
 object XpathViaXom {
   lazy val ss1 = {
@@ -41,6 +42,34 @@ object XpathViaXom {
     val transform = new XSLTransform(stylesheet)
     val output = transform.transform(doc)
     output
+  }
+
+  import collection.JavaConverters._
+
+  def openLocal7z(path:Path) : InputStream = {
+    val f7z = java.nio.channels.FileChannel.open(path, StandardOpenOption.READ)
+    val arch = new org.apache.commons.compress.archivers.sevenz.SevenZFile(f7z)
+    arch.getNextEntry
+    //val ent = arch.getEntries.iterator().asScala.next()
+
+    new InputStream {
+      override def read(): Int = {
+        arch.read()
+      }
+
+      override def read(b: Array[Byte], off: Int, len: Int): Int = {
+        arch.read(b,off,len)
+      }
+    }
+  }
+
+  def findPageRevisions(path:String): Nodes = {
+    val is = openLocal7z(java.nio.file.Paths.get(path))
+    import nu.xom.Nodes
+    import nu.xom.xslt.XSLTransform
+    val builder = new nu.xom.Builder()
+    val source = builder.build(is)
+    XpathViaXom.filterXslt(XpathViaXom.ss1, source)
   }
 
   def main(args: Array[String]): Unit = {
