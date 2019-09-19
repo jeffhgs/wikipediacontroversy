@@ -21,6 +21,8 @@ libraryDependencies += "com.upplication" % "s3fs" % "2.2.2"
 
 libraryDependencies += "xom" % "xom" % "1.3.2"
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+
 assemblyMergeStrategy in assembly := {
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value

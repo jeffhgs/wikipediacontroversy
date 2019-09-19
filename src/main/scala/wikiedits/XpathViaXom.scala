@@ -6,11 +6,16 @@ import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import nu.xom.{Builder, Document}
 
 object XpathViaXom {
-  def filterXslt(builder: Builder, doc: Document) = {
+  lazy val ss1 = {
+    val builder = new nu.xom.Builder()
+    val textSs = """<hello></hello>"""
+    builder.build(new ByteArrayInputStream(textSs.getBytes))
+  }
+
+  def filterXslt(stylesheet: Document, doc: Document) = {
     import nu.xom.Nodes
     import nu.xom.xslt.XSLTransform
-    val ss = """<hello></hello>"""
-    val stylesheet = builder.build(new ByteArrayInputStream(ss.getBytes))
+
     val transform = new XSLTransform(stylesheet)
     val output = transform.transform(doc)
     output
@@ -30,7 +35,7 @@ object XpathViaXom {
     val builder = new nu.xom.Builder()
     try {
       val doc = builder.build(args(0))
-      val output: Nodes = filterXslt(builder, doc)
+      val output: Nodes = filterXslt(ss1, doc)
       import scala.collection.JavaConversions._
       for (node <- output) {
         System.out.print(node.toXML)
