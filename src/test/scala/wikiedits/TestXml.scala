@@ -109,6 +109,15 @@ class TestXml extends FunSpec {
         }
         println(s"found in 7z ${c} revisions")
       }
+      it("should parse xml events on long stream") {
+        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+        var c = 0
+        for(node <- QueryViaStax.findPageRevisions(path, XpathViaXom.ss1)) {
+          //println(s"node: ${node.getValue}")
+          c += 1
+        }
+        println(s"found ${c} xml events")
+      }
     }
   }
 }
