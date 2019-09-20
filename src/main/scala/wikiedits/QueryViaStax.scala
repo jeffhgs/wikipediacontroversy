@@ -11,6 +11,11 @@ object QueryViaStax {
   def loadDecompressAndFindPageRevisions(path: String, ss: String) = {
     val is = openLocal7z(java.nio.file.Paths.get(path))
     System.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
+    parse(is)
+  }
+
+
+  def parse(is: InputStream) = {
     import javax.xml.stream.XMLInputFactory
     val factory = XMLInputFactory.newInstance
     //factory.setProperty(XMLConstants.FEATURE_SECURE_PROCESSING, false)
