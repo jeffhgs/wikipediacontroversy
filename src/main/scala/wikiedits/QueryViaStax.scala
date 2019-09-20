@@ -8,7 +8,7 @@ import wikiedits.XpathViaXom.openLocal7z
 object QueryViaStax {
   import collection.JavaConverters._
 
-  def findPageRevisions(path: String, ss: String) = {
+  def loadDecompressAndFindPageRevisions(path: String, ss: String) = {
     val is = openLocal7z(java.nio.file.Paths.get(path))
     System.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
     import javax.xml.stream.XMLInputFactory
