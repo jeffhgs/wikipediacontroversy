@@ -66,7 +66,7 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
-  describe("XML") {
+  describe("Warmup XML") {
     import collection.JavaConverters._
     describe("parsing") {
       it("should have size 0") {
@@ -78,18 +78,6 @@ class TestXml extends FunSpec {
         for(node <- XpathViaXom.filterXslt(XpathViaXom.ss1, source).iterator().asScala) {
           println(s"node: ${node.getValue}") //
         }
-      }
-      ignore("should decompress a long stream") {
-        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-        val is = XpathViaXom.openLocal7z(java.nio.file.Paths.get(path))
-        var c : Long = 0
-        var cRead : Long = 0
-        val buf :Array[Byte] = Array.fill[Byte](1024*1024)(0)
-        while(cRead >= 0) {
-          cRead = is.read(buf,0,1024*1024)
-          c += cRead
-        }
-        println(s"read ${c} bytes")
       }
       ignore("should run trivial xpath on long stream but it actually bombs") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
@@ -109,7 +97,25 @@ class TestXml extends FunSpec {
         }
         println(s"found in 7z ${c} revisions")
       }
-      it("should parse xml events on long stream") {
+    }
+  }
+  describe("decompression") {
+    ignore("should decompress a long stream") {
+      val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+      val is = XpathViaXom.openLocal7z(java.nio.file.Paths.get(path))
+      var c : Long = 0
+      var cRead : Long = 0
+      val buf :Array[Byte] = Array.fill[Byte](1024*1024)(0)
+      while(cRead >= 0) {
+        cRead = is.read(buf,0,1024*1024)
+        c += cRead
+      }
+      println(s"read ${c} bytes")
+    }
+  }
+  describe("XML") {
+    describe("parsing") {
+      ignore("should parse xml events on long stream") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
         for(node <- QueryViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1)) {
