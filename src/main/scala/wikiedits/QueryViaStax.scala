@@ -16,12 +16,16 @@ object QueryViaStax {
     //factory.setProperty(XMLConstants.FEATURE_SECURE_PROCESSING, false)
     //factory.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
     val it = factory.createXMLEventReader(is)
-    new Iterator[XMLEvent]() {
+    new BufferedIterator[XMLEvent]() {
       override def hasNext: Boolean = {
         it.hasNext
       }
       override def next(): XMLEvent = {
         it.nextEvent()
+      }
+
+      override def head: XMLEvent = {
+        it.peek()
       }
     }
   }
