@@ -1,12 +1,82 @@
 package wikiedits
 
+import java.io.InputStream
+
 import javax.xml.XMLConstants
 import javax.xml.stream.events.XMLEvent
 import nu.xom.Nodes
 import wikiedits.XpathViaXom.openLocal7z
 
+import scala.collection.immutable.HashSet
+import scala.collection.mutable.ArrayBuffer
+
 object QueryViaStax {
   import collection.JavaConverters._
+  import util.control.Breaks._
+
+  def childrenUntil(it: BufferedIterator[XMLEvent], tags:Set[String]) = {
+    var b = ArrayBuffer[XMLEvent]()
+    var depth = 0
+    var done = false
+    while(!done && it.hasNext) {
+      val el = it.head
+      if(el == null)
+        // end of stream
+        done = true
+      else if(depth == 0 && el.isEndElement)
+        // end of element
+        done = true
+      else if(depth == 0 && el.isStartElement && tags.contains(el.asStartElement().getName().getLocalPart))
+        // hit stopping element
+        done = true
+      else {
+        b += el
+        // maintain depth
+        if (el.isStartElement)
+          depth += 1
+        else if (el.isEndElement)
+          depth -= 1
+        it.next()
+      }
+    }
+    b
+  }
+
+  def child(tag:String, els:Array[XMLEvent]): ArrayBuffer[XMLEvent] = {
+    var b = ArrayBuffer[XMLEvent]()
+    var depth = 0
+    var done = false
+    var isChild = false
+    var i = 0
+    while (!done && i < els.length) {
+      val el = els(i)
+      if (depth == 0 && el.isEndElement) {
+        // end of all children
+        done = true
+      }
+      else if (depth == 0 && el.isStartElement && tag == el.asStartElement().getName().getLocalPart) {
+        // found the matching child subtree
+        isChild = true
+      }
+      if (isChild) {
+        b += el
+        if(depth == 1 && el.isEndElement) {
+          isChild = false
+        }
+      }
+      // maintain depth
+      if (el.isStartElement)
+        depth += 1
+      else if (el.isEndElement)
+        depth -= 1
+      i += 1
+    }
+    b
+  }
+
+  def innerText(els:Array[XMLEvent]) = {
+    els.filter(_.isCharacters).map(_.asCharacters()).mkString("")
+  }
 
   def loadDecompressAndFindPageRevisions(path: String, ss: String) = {
     val is = openLocal7z(java.nio.file.Paths.get(path))
@@ -25,6 +95,7 @@ object QueryViaStax {
       override def hasNext: Boolean = {
         it.hasNext
       }
+
       override def next(): XMLEvent = {
         it.nextEvent()
       }
@@ -33,9 +104,5 @@ object QueryViaStax {
         it.peek()
       }
     }
-  }
-
-
-  def main(args : Array[String]) = {
   }
 }

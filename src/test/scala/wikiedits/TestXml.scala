@@ -2,7 +2,10 @@ package wikiedits
 
 import java.io.ByteArrayInputStream
 
+import javax.xml.stream.events.XMLEvent
 import org.scalatest.FunSpec
+
+import scala.collection.immutable.HashSet
 
 class TestXml extends FunSpec {
   val xmlInput1 =
@@ -114,7 +117,7 @@ class TestXml extends FunSpec {
     }
   }
   describe("XML") {
-    describe("parsing") {
+    describe("scalability") {
       ignore("should parse xml events on long stream") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
@@ -125,5 +128,145 @@ class TestXml extends FunSpec {
         println(s"found ${c} xml events")
       }
     }
+    def elsTest(st: String) = {
+      QueryViaStax.parse(new ByteArrayInputStream(st.getBytes())).toArray
+    }
+    def elsTestChildren(st:String, keepEnd:Boolean) = {
+      val els = elsTest(st)
+        .drop(1) // <?xml ...>
+        .drop(1) // <foo> (ElementStart)
+      if(keepEnd)
+        els
+      else
+        els.dropRight(2) // discard ElementEnd and DocumentEnd
+    }
+    def stTargetChild(isCompressed:Boolean) = {
+      if(isCompressed)
+        "<bar/>"
+      else
+        "<bar></bar>"
+    }
+    describe("child") {
+      it("should find an only child") {
+        Seq(true, false).foreach(isTargetCompressed => {
+          val st =
+            s"""
+               |<foo>
+               |${stTargetChild(isTargetCompressed)}
+               |</foo>
+            """.stripMargin
+          Seq(true, false).foreach(keepEnd => {
+            val elsIn = elsTestChildren(st, keepEnd)
+            val els = QueryViaStax.child("bar", elsIn)
+            assert(els.length > 0)
+          })
+        })
+      }
+      it("should find a right child") {
+        Seq(true, false).foreach(isTargetCompressed => {
+          val st =
+            s"""
+               |<foo>
+               |<baz></baz>
+               |${stTargetChild(isTargetCompressed)}
+               |</foo>
+          """.stripMargin
+          Seq(true, false).foreach(keepEnd => {
+            val elsIn = elsTestChildren(st, keepEnd)
+            val els = QueryViaStax.child("bar", elsIn)
+            assert(els.length > 0)
+          })
+        })
+      }
+      it("should find a left child") {
+        Seq(true, false).foreach(isTargetCompressed => {
+          val st =
+            s"""
+               |<foo>
+               |<baz></baz>
+               |${stTargetChild(isTargetCompressed)}
+               |</foo>
+          """.stripMargin
+          Seq(true, false).foreach(keepEnd => {
+            val elsIn = elsTestChildren(st, keepEnd)
+            val els = QueryViaStax.child("bar", elsIn)
+            assert(els.length > 0)
+          })
+        })
+      }
+      it("should not find a missing child") {
+        val st =
+          s"""
+             |<foo>
+             |</foo>
+          """.stripMargin
+        Seq(true, false).foreach(keepEnd => {
+          val elsIn = elsTestChildren(st, keepEnd)
+          val els = QueryViaStax.child("bar", elsIn)
+          assert(els.length == 0)
+        })
+      }
+    }
+    describe("childrenUntil") {
+      it("should find uninterrupted children") {
+        val hist =
+          0.to(2).flatMap(numChildren => {
+            val stTarget = 1.to(numChildren).map(_ => "<bar/>\n").mkString("")
+            val st =
+              s"""
+                 |<foo>
+                 |${stTarget}
+                 |</foo>
+            """.stripMargin
+            Seq(true, false).flatMap(keepEnd => {
+              val elsIn = elsTestChildren(st, keepEnd).iterator.buffered
+              val els = QueryViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
+              val ok = (els.length == 2*numChildren) // 2: StartElement and EndElement
+              Seq((Map("numChildren"->numChildren, "keepEnd"->keepEnd), ok))
+            })
+          }).groupBy(_._2)
+        assert(hist.get(false).isEmpty)
+      }
+      it("should find interrupted children") {
+        val hist =
+          0.to(2).flatMap(numChildren => {
+            val stTarget = 1.to(numChildren).map(_ => "<bar/>\n").mkString("")
+            val st =
+              s"""
+                 |<foo>
+                 |${stTarget}
+                 |<baz/>
+                 |<bar/>
+                 |</foo>
+            """.stripMargin
+            Seq(true, false).flatMap(keepEnd => {
+              val elsIn = elsTestChildren(st, keepEnd).iterator.buffered
+              val els = QueryViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
+              val ok = (els.length == 2*numChildren) // 2: StartElement and EndElement
+              Seq((Map("numChildren"->numChildren, "keepEnd"->keepEnd), ok))
+            })
+          }).groupBy(_._2)
+        assert(hist.get(false).isEmpty)
+      }
+    }
+    describe("text extraction") {
+      describe("innerText") {
+        it("should extract text") {
+          Seq("hello"," hello", "hello ","hello\n","\nhello").foreach(st => {
+            val stXml =
+              """
+                |<foo>hello
+                |</foo>
+              """.stripMargin
+            val stExpected = st.trim
+            val elsIn = elsTest(stXml)
+            val stActual = QueryViaStax.innerText(elsIn)
+            assert(stExpected == stActual.trim)
+          })
+        }
+      }
+
+    }
   }
+
 }
