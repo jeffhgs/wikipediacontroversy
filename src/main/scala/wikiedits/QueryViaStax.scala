@@ -42,39 +42,38 @@ object QueryViaStax {
     b
   }
 
-  def child(tag:String, els:Array[XMLEvent]): ArrayBuffer[XMLEvent] = {
+  def child(tag:String, els:Seq[XMLEvent]): ArrayBuffer[XMLEvent] = {
     var b = ArrayBuffer[XMLEvent]()
     var depth = 0
     var done = false
     var isChild = false
-    var i = 0
-    while (!done && i < els.length) {
-      val el = els(i)
-      if (depth == 0 && el.isEndElement) {
-        // end of all children
-        done = true
-      }
-      else if (depth == 0 && el.isStartElement && tag == el.asStartElement().getName().getLocalPart) {
-        // found the matching child subtree
-        isChild = true
-      }
-      if (isChild) {
-        b += el
-        if(depth == 1 && el.isEndElement) {
-          isChild = false
+    for(el <- els) {
+      if(!done) {
+        if (depth == 0 && el.isEndElement) {
+          // end of all children
+          done = true
         }
+        else if (depth == 0 && el.isStartElement && tag == el.asStartElement().getName().getLocalPart) {
+          // found the matching child subtree
+          isChild = true
+        }
+        if (isChild) {
+          b += el
+          if(depth == 1 && el.isEndElement) {
+            isChild = false
+          }
+        }
+        // maintain depth
+        if (el.isStartElement)
+          depth += 1
+        else if (el.isEndElement)
+          depth -= 1
       }
-      // maintain depth
-      if (el.isStartElement)
-        depth += 1
-      else if (el.isEndElement)
-        depth -= 1
-      i += 1
     }
     b
   }
 
-  def innerText(els:Array[XMLEvent]) = {
+  def innerText(els:Seq[XMLEvent]) = {
     els.filter(_.isCharacters).map(_.asCharacters()).mkString("")
   }
 
