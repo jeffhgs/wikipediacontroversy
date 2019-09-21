@@ -1,6 +1,6 @@
 package wikiedits
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 
 import javax.xml.XMLConstants
 import javax.xml.stream.events.XMLEvent
@@ -108,6 +108,9 @@ object QueryViaStax {
     parse(is)
   }
 
+  def parseString(st:String) = {
+    parse(new ByteArrayInputStream(st.getBytes()))
+  }
 
   def parse(is: InputStream) = {
     import javax.xml.stream.XMLInputFactory
