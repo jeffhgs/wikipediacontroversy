@@ -77,6 +77,31 @@ object QueryViaStax {
     els.filter(_.isCharacters).map(_.asCharacters()).mkString("")
   }
 
+  case class DepthXmlEventReader(it: BufferedIterator[XMLEvent]) extends BufferedIterator[XMLEvent] {
+    private var _depth = 0
+    def depth = {
+      _depth
+    }
+    override def head: XMLEvent = {
+      it.head
+    }
+
+    override def hasNext: Boolean = {
+      it.hasNext
+    }
+
+    override def next(): XMLEvent = {
+      val el : XMLEvent = it.next()
+      if (el.isStartElement) {
+        _depth += 1
+      }
+      else if(el.isEndElement) {
+        _depth -= 1
+      }
+      el
+    }
+  }
+
   def loadDecompressAndFindPageRevisions(path: String, ss: String) = {
     val is = openLocal7z(java.nio.file.Paths.get(path))
     System.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
