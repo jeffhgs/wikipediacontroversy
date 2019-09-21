@@ -127,6 +127,35 @@ class TestXml extends FunSpec {
         }
         println(s"found ${c} xml events")
       }
+      it("should find events in a small input") {
+        val it = QueryViaStax.parseString(xmlInput1)
+        var c = 0
+        for(pageRev <- it) {
+          c += 1
+        }
+        println(s"found ${c} events")
+        assert(c>0)
+      }
+      it("should find revisions in a small input") {
+        val it = QueryViaStax.parseString(xmlInput1)
+        var c = 0
+        for(pageRev <- QueryViaStax.findPageRevisions(it)) {
+          c += 1
+          println(s"found ${pageRev}")
+        }
+        println(s"found ${c} revisions")
+        assert(c>0)
+      }
+      it("should find revisions in a large input") {
+        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+        var c = 0
+        for(pageRev <- QueryViaStax.findPageRevisions(QueryViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1))) {
+          c += 1
+        }
+        println(s"found ${c} revisions")
+        assert(c>0)
+      }
+
     }
     def elsTest(st: String) = {
       QueryViaStax.parse(new ByteArrayInputStream(st.getBytes())).toArray
