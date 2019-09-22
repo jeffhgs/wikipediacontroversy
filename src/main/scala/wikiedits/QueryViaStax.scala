@@ -1,13 +1,8 @@
 package wikiedits
 
-import java.io.{ByteArrayInputStream, InputStream}
-
-import javax.xml.XMLConstants
 import javax.xml.stream.events.XMLEvent
-import nu.xom.Nodes
 
 import scala.collection.immutable.HashSet
-import scala.collection.mutable.ArrayBuffer
 
 object QueryViaStax {
   import ParseViaStax._

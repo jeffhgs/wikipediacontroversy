@@ -69,39 +69,6 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
-  describe("Warmup XML") {
-    import collection.JavaConverters._
-    describe("parsing") {
-      it("should have size 0") {
-        assert(Set.empty.size == 0)
-      }
-      it("should parse small item") {
-        val builder = new nu.xom.Builder()
-        val source = builder.build(new ByteArrayInputStream(xmlInput1.getBytes))
-        for(node <- XpathViaXom.filterXslt(XpathViaXom.ss1, source).iterator().asScala) {
-          println(s"node: ${node.getValue}") //
-        }
-      }
-      ignore("should run trivial xpath on long stream but it actually bombs") {
-        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-        var c = 0
-        for(node <- Decompress.findPageRevisions(path, XpathViaXom.ss0).iterator().asScala) {
-          //println(s"node: ${node.getValue}")
-          c += 1
-        }
-        println(s"found in 7z ${c} nodes")
-      }
-      ignore("should run useful xpath on long stream") {
-        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-        var c = 0
-        for(node <- Decompress.findPageRevisions(path, XpathViaXom.ss1).iterator().asScala) {
-          //println(s"node: ${node.getValue}")
-          c += 1
-        }
-        println(s"found in 7z ${c} revisions")
-      }
-    }
-  }
   describe("decompression") {
     ignore("should decompress a long stream") {
       val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
@@ -118,15 +85,6 @@ class TestXml extends FunSpec {
   }
   describe("XML") {
     describe("scalability") {
-      ignore("should parse xml events on long stream") {
-        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-        var c = 0
-        for(node <- ParseViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1)) {
-          //println(s"node: ${node.getValue}")
-          c += 1
-        }
-        println(s"found ${c} xml events")
-      }
       it("should find events in a small input") {
         val it = ParseViaStax.parseString(xmlInput1)
         var c = 0
@@ -149,7 +107,7 @@ class TestXml extends FunSpec {
       it("should find revisions in a large input") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1))) {
+        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadDecompressAndFindPageRevisions(path))) {
           c += 1
         }
         println(s"found ${c} revisions")

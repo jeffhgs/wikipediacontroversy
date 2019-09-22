@@ -20,13 +20,4 @@ object Decompress {
       }
     }
   }
-
-  def findPageRevisions(path: String, ss: String): nu.xom.Nodes = {
-    val is = openLocal7z(java.nio.file.Paths.get(path))
-    import nu.xom.Nodes
-    import nu.xom.xslt.XSLTransform
-    val builder = new nu.xom.Builder()
-    val source = builder.build(is)
-    XpathViaXom.filterXslt(ss, source)
-  }
 }
