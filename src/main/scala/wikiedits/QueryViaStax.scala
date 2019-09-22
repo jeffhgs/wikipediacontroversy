@@ -5,7 +5,6 @@ import java.io.{ByteArrayInputStream, InputStream}
 import javax.xml.XMLConstants
 import javax.xml.stream.events.XMLEvent
 import nu.xom.Nodes
-import wikiedits.XpathViaXom.openLocal7z
 
 import scala.collection.immutable.HashSet
 import scala.collection.mutable.ArrayBuffer

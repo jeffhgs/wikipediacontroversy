@@ -3,11 +3,10 @@ package wikiedits
 import java.io.{ByteArrayInputStream, InputStream}
 
 import javax.xml.stream.events.XMLEvent
-import wikiedits.XpathViaXom.openLocal7z
 
 object ParseViaStax {
   def loadDecompressAndFindPageRevisions(path: String, ss: String) = {
-    val is = openLocal7z(java.nio.file.Paths.get(path))
+    val is = Decompress.openLocal7z(java.nio.file.Paths.get(path))
     System.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
     parse(is)
   }

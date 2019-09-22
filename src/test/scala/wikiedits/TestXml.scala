@@ -85,7 +85,7 @@ class TestXml extends FunSpec {
       ignore("should run trivial xpath on long stream but it actually bombs") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(node <- XpathViaXom.findPageRevisions(path, XpathViaXom.ss0).iterator().asScala) {
+        for(node <- Decompress.findPageRevisions(path, XpathViaXom.ss0).iterator().asScala) {
           //println(s"node: ${node.getValue}")
           c += 1
         }
@@ -94,7 +94,7 @@ class TestXml extends FunSpec {
       ignore("should run useful xpath on long stream") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(node <- XpathViaXom.findPageRevisions(path, XpathViaXom.ss1).iterator().asScala) {
+        for(node <- Decompress.findPageRevisions(path, XpathViaXom.ss1).iterator().asScala) {
           //println(s"node: ${node.getValue}")
           c += 1
         }
@@ -105,7 +105,7 @@ class TestXml extends FunSpec {
   describe("decompression") {
     ignore("should decompress a long stream") {
       val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-      val is = XpathViaXom.openLocal7z(java.nio.file.Paths.get(path))
+      val is = Decompress.openLocal7z(java.nio.file.Paths.get(path))
       var c : Long = 0
       var cRead : Long = 0
       val buf :Array[Byte] = Array.fill[Byte](1024*1024)(0)
