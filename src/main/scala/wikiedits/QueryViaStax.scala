@@ -14,20 +14,44 @@ object QueryViaStax {
   import ParseViaStax._
   import TraverseViaStax._
 
+  abstract class TransIterator[S,R](sInitial:S) extends Iterator[R] {
+
+    def trans(state:S) : (S,Boolean,Option[R]) = ???
+
+    var _state : S = sInitial
+    var _isDone : Boolean = false
+
+    private var _next : Option[R] = None
+    override def hasNext: Boolean = {
+      while(!_isDone) {
+        val (stateNext, isDone, nextNext) = trans(_state)
+        _state = stateNext
+        _isDone = isDone
+        if(nextNext.isDefined) {
+          _next = nextNext
+          return true
+        }
+      }
+      return false
+    }
+
+    override def next(): R = {
+      _next.get
+    }
+  }
+
   case class AttrPage(titlePage:String, idpage:String)
   case class AttrRev(idRev:String, sha1:String)
   case class PageRev(page:AttrPage, rev:AttrRev)
 
-  def findPageRevisions(it0: BufferedIterator[XMLEvent]) = new Iterator[PageRev] {
+  trait State
+  case class StateInitial() extends State
+  case class StatePage(page:AttrPage) extends State
+
+  case class findPageRevisions(it0: BufferedIterator[XMLEvent]) extends TransIterator[State,PageRev](StateInitial()) {
     val it = DepthXmlEventReader(it0)
 
-    trait State
-    case class StateInitial() extends State
-    case class StatePage(page:AttrPage) extends State
-    var _state : State = StateInitial()
-    var _isDone : Boolean = false
-
-    private def nextImpl(state:State):(State,Boolean,Option[PageRev]) = {
+    override def trans(state:State):(State,Boolean,Option[PageRev]) = {
       if(!it.hasNext)
         return (state,true,None)
       val el = it.next()
@@ -61,24 +85,5 @@ object QueryViaStax {
           }
       }
     }
-
-    private var _next : PageRev = null
-    override def hasNext: Boolean = {
-      while(!_isDone) {
-        val (stateNext, isDone, nextNext) = nextImpl(_state)
-        _state = stateNext
-        _isDone = isDone
-        if(nextNext.isDefined) {
-          _next = nextNext.get
-          return true
-        }
-      }
-      return false
-    }
-
-    override def next(): PageRev = {
-      _next
-    }
   }
-
 }
