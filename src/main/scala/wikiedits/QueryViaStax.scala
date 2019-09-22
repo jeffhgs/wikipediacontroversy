@@ -21,58 +21,54 @@ object QueryViaStax {
   def findPageRevisions(it0: BufferedIterator[XMLEvent]) = new Iterator[PageRev] {
     val it = DepthXmlEventReader(it0)
 
+    trait State
+    case class StateInitial() extends State
+    case class StatePage(page:AttrPage) extends State
+    case class StateDone() extends State
     val stateInitial = 0
     val statePage = 4
-    val stateRevision = 2
     val stateDone = 3
-    var state = 0
+    var state : State = StateInitial()
 
-    var elsPage = Seq[XMLEvent]()
-    var title = ""
-    var idPage = ""
 
     var elsRev = Seq[XMLEvent]()
     var idRev = ""
     var sha1 = ""
 
-    private def nextImpl():(Int,Option[PageRev]) = {
+    private def nextImpl():(State,Option[PageRev]) = {
       val el = it.next()
       state match {
-        case 0 => // stateInitial
+        case StateInitial() =>
           if (it.depth == 2 && el.isStartElement && el.asStartElement().getName().getLocalPart == "page") {
-            elsPage = childrenUntil(it, HashSet("revision"))
-            title = innerText(child("title", elsPage))
-            idPage = innerText(child("id", elsPage))
-            return (statePage, None)
+            val elsPage = childrenUntil(it, HashSet("revision"))
+            val page = AttrPage(
+              innerText(child("title", elsPage)),
+              innerText(child("id", elsPage)))
+            return (StatePage(page), None)
           } else if(it.depth == 2 && el.isEndElement) {
-            elsPage = Seq()
-            title = ""
-            idPage = ""
-            return (stateInitial, None)
+            return (StateInitial(), None)
           } else {
             return (state, None)
           }
-        case 4 => // statePage
+        case StatePage(page) =>
           if(el.isEndElement) {
-            return (stateInitial, None)
+            return (StateInitial(), None)
           }
           else if (el.isStartElement && el.asStartElement().getName().getLocalPart == "revision") {
             elsRev = childrenUntil(it, HashSet())
             idRev = innerText(child("id", elsRev))
             sha1 = innerText(child("sha1", elsRev))
             exit(it) // revision
-            val rev = PageRev(AttrPage(title, idPage), AttrRev(idRev, sha1))
+            val rev = PageRev(page, AttrRev(idRev, sha1))
             elsRev = Seq[XMLEvent]()
             idRev = ""
             sha1 = ""
-            return (statePage, Some(rev))
+            return (state, Some(rev))
           } else {
-            return (statePage, None)
+            return (state, None)
           }
-        case 2 => // stateRevision
-          return(stateRevision, None)
-        case 3 => // stateDone
-          (stateDone, None)
+        case StateDone() =>
+          (state, None)
       }
     }
 
