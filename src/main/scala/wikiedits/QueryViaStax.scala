@@ -14,7 +14,9 @@ object QueryViaStax {
   import ParseViaStax._
   import TraverseViaStax._
 
-  case class PageRev(titlePage:String, idpage:String, idRev:String, sha1:String)
+  case class AttrPage(titlePage:String, idpage:String)
+  case class AttrRev(idRev:String, sha1:String)
+  case class PageRev(page:AttrPage, rev:AttrRev)
 
   def findPageRevisions(it0: BufferedIterator[XMLEvent]) = new Iterator[PageRev] {
     val it = DepthXmlEventReader(it0)
@@ -59,7 +61,7 @@ object QueryViaStax {
             idRev = innerText(child("id", elsRev))
             sha1 = innerText(child("sha1", elsRev))
             exit(it) // revision
-            val rev = PageRev(title, idPage, idRev, sha1)
+            val rev = PageRev(AttrPage(title, idPage), AttrRev(idRev, sha1))
             elsRev = Seq[XMLEvent]()
             idRev = ""
             sha1 = ""
