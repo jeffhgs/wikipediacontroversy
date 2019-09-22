@@ -25,15 +25,7 @@ object QueryViaStax {
     case class StateInitial() extends State
     case class StatePage(page:AttrPage) extends State
     case class StateDone() extends State
-    val stateInitial = 0
-    val statePage = 4
-    val stateDone = 3
     var state : State = StateInitial()
-
-
-    var elsRev = Seq[XMLEvent]()
-    var idRev = ""
-    var sha1 = ""
 
     private def nextImpl():(State,Option[PageRev]) = {
       val el = it.next()
@@ -55,15 +47,13 @@ object QueryViaStax {
             return (StateInitial(), None)
           }
           else if (el.isStartElement && el.asStartElement().getName().getLocalPart == "revision") {
-            elsRev = childrenUntil(it, HashSet())
-            idRev = innerText(child("id", elsRev))
-            sha1 = innerText(child("sha1", elsRev))
+            val elsRev = childrenUntil(it, HashSet())
+            val rev = AttrRev(
+              innerText(child("id", elsRev)),
+              innerText(child("sha1", elsRev)))
             exit(it) // revision
-            val rev = PageRev(page, AttrRev(idRev, sha1))
-            elsRev = Seq[XMLEvent]()
-            idRev = ""
-            sha1 = ""
-            return (state, Some(rev))
+            val pagerev = PageRev(page, rev)
+            return (state, Some(pagerev))
           } else {
             return (state, None)
           }
@@ -74,9 +64,9 @@ object QueryViaStax {
 
     private var _next : PageRev = null
     override def hasNext: Boolean = {
-      if(state == stateDone)
+      if(state.isInstanceOf[StateDone])
         return false
-      while(it.hasNext && state != stateDone) {
+      while(it.hasNext && !state.isInstanceOf[StateDone]) {
         val (stateNext, nextNext) = nextImpl()
         state = stateNext
         if(nextNext.isDefined) {
