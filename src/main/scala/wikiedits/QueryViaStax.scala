@@ -41,7 +41,8 @@ object QueryViaStax {
   }
 
   case class AttrPage(titlePage:String, idpage:String)
-  case class AttrRev(idRev:String, sha1:String)
+  case class Contributor(idContrib:String, name:String)
+  case class AttrRev(idRev:String, contributor:Contributor, timestamp:String, sha1:String)
   case class PageRev(page:AttrPage, rev:AttrRev)
 
   trait State
@@ -74,8 +75,14 @@ object QueryViaStax {
           }
           else if (el.isStartElement && el.asStartElement().getName().getLocalPart == "revision") {
             val elsRev = childrenUntil(it, HashSet())
+            val elsContrib = child("contributor", elsRev).drop(1)
+            val contributor = Contributor(
+              innerText(child("username",elsContrib)),
+              innerText(child("id",elsContrib)))
             val rev = AttrRev(
               innerText(child("id", elsRev)),
+              contributor,
+              innerText(child("timestamp", elsRev)),
               innerText(child("sha1", elsRev)))
             exit(it) // revision
             val pagerev = PageRev(page, rev)
