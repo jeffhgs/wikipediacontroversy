@@ -121,14 +121,14 @@ class TestXml extends FunSpec {
       ignore("should parse xml events on long stream") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(node <- QueryViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1)) {
+        for(node <- ParseViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1)) {
           //println(s"node: ${node.getValue}")
           c += 1
         }
         println(s"found ${c} xml events")
       }
       it("should find events in a small input") {
-        val it = QueryViaStax.parseString(xmlInput1)
+        val it = ParseViaStax.parseString(xmlInput1)
         var c = 0
         for(pageRev <- it) {
           c += 1
@@ -137,7 +137,7 @@ class TestXml extends FunSpec {
         assert(c>0)
       }
       it("should find revisions in a small input") {
-        val it = QueryViaStax.parseString(xmlInput1)
+        val it = ParseViaStax.parseString(xmlInput1)
         var c = 0
         for(pageRev <- QueryViaStax.findPageRevisions(it)) {
           c += 1
@@ -149,7 +149,7 @@ class TestXml extends FunSpec {
       it("should find revisions in a large input") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(pageRev <- QueryViaStax.findPageRevisions(QueryViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1))) {
+        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadDecompressAndFindPageRevisions(path, XpathViaXom.ss1))) {
           c += 1
         }
         println(s"found ${c} revisions")
@@ -158,7 +158,7 @@ class TestXml extends FunSpec {
 
     }
     def elsTest(st: String) = {
-      QueryViaStax.parse(new ByteArrayInputStream(st.getBytes())).toArray
+      ParseViaStax.parse(new ByteArrayInputStream(st.getBytes())).toArray
     }
     def elsTestChildren(st:String, keepEnd:Boolean) = {
       val els = elsTest(st)
@@ -186,7 +186,7 @@ class TestXml extends FunSpec {
             """.stripMargin
           Seq(true, false).foreach(keepEnd => {
             val elsIn = elsTestChildren(st, keepEnd)
-            val els = QueryViaStax.child("bar", elsIn)
+            val els = TraverseViaStax.child("bar", elsIn)
             assert(els.length > 0)
           })
         })
@@ -202,7 +202,7 @@ class TestXml extends FunSpec {
           """.stripMargin
           Seq(true, false).foreach(keepEnd => {
             val elsIn = elsTestChildren(st, keepEnd)
-            val els = QueryViaStax.child("bar", elsIn)
+            val els = TraverseViaStax.child("bar", elsIn)
             assert(els.length > 0)
           })
         })
@@ -218,7 +218,7 @@ class TestXml extends FunSpec {
           """.stripMargin
           Seq(true, false).foreach(keepEnd => {
             val elsIn = elsTestChildren(st, keepEnd)
-            val els = QueryViaStax.child("bar", elsIn)
+            val els = TraverseViaStax.child("bar", elsIn)
             assert(els.length > 0)
           })
         })
@@ -231,7 +231,7 @@ class TestXml extends FunSpec {
           """.stripMargin
         Seq(true, false).foreach(keepEnd => {
           val elsIn = elsTestChildren(st, keepEnd)
-          val els = QueryViaStax.child("bar", elsIn)
+          val els = TraverseViaStax.child("bar", elsIn)
           assert(els.length == 0)
         })
       }
@@ -249,7 +249,7 @@ class TestXml extends FunSpec {
             """.stripMargin
             Seq(true, false).flatMap(keepEnd => {
               val elsIn = elsTestChildren(st, keepEnd).iterator.buffered
-              val els = QueryViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
+              val els = TraverseViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
               val ok = (els.length == 2*numChildren) // 2: StartElement and EndElement
               Seq((Map("numChildren"->numChildren, "keepEnd"->keepEnd), ok))
             })
@@ -270,7 +270,7 @@ class TestXml extends FunSpec {
             """.stripMargin
             Seq(true, false).flatMap(keepEnd => {
               val elsIn = elsTestChildren(st, keepEnd).iterator.buffered
-              val els = QueryViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
+              val els = TraverseViaStax.childrenUntil(elsIn, HashSet("baz")).filter(!_.isCharacters)
               val ok = (els.length == 2*numChildren) // 2: StartElement and EndElement
               Seq((Map("numChildren"->numChildren, "keepEnd"->keepEnd), ok))
             })
@@ -289,7 +289,7 @@ class TestXml extends FunSpec {
               """.stripMargin
             val stExpected = st.trim
             val elsIn = elsTest(stXml)
-            val stActual = QueryViaStax.innerText(elsIn)
+            val stActual = TraverseViaStax.innerText(elsIn)
             assert(stExpected == stActual.trim)
           })
         }
