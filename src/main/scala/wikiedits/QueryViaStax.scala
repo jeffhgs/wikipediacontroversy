@@ -28,6 +28,8 @@ object QueryViaStax {
     var _isDone : Boolean = false
 
     private def nextImpl(state:State):(State,Boolean,Option[PageRev]) = {
+      if(!it.hasNext)
+        return (state,true,None)
       val el = it.next()
       state match {
         case StateInitial() =>
@@ -62,9 +64,7 @@ object QueryViaStax {
 
     private var _next : PageRev = null
     override def hasNext: Boolean = {
-      if(_isDone)
-        return false
-      while(it.hasNext && !_isDone) {
+      while(!_isDone) {
         val (stateNext, isDone, nextNext) = nextImpl(_state)
         _state = stateNext
         _isDone = isDone
