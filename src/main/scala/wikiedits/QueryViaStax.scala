@@ -24,10 +24,10 @@ object QueryViaStax {
     trait State
     case class StateInitial() extends State
     case class StatePage(page:AttrPage) extends State
-    case class StateDone() extends State
     var _state : State = StateInitial()
+    var _isDone : Boolean = false
 
-    private def nextImpl(state:State):(State,Option[PageRev]) = {
+    private def nextImpl(state:State):(State,Boolean,Option[PageRev]) = {
       val el = it.next()
       state match {
         case StateInitial() =>
@@ -36,15 +36,15 @@ object QueryViaStax {
             val page = AttrPage(
               innerText(child("title", elsPage)),
               innerText(child("id", elsPage)))
-            return (StatePage(page), None)
+            return (StatePage(page), false, None)
           } else if(it.depth == 2 && el.isEndElement) {
-            return (StateInitial(), None)
+            return (StateInitial(), false, None)
           } else {
-            return (state, None)
+            return (state, false, None)
           }
         case StatePage(page) =>
           if(el.isEndElement) {
-            return (StateInitial(), None)
+            return (StateInitial(), false, None)
           }
           else if (el.isStartElement && el.asStartElement().getName().getLocalPart == "revision") {
             val elsRev = childrenUntil(it, HashSet())
@@ -53,22 +53,21 @@ object QueryViaStax {
               innerText(child("sha1", elsRev)))
             exit(it) // revision
             val pagerev = PageRev(page, rev)
-            return (state, Some(pagerev))
+            return (state, false, Some(pagerev))
           } else {
-            return (state, None)
+            return (state, true, None)
           }
-        case StateDone() =>
-          (state, None)
       }
     }
 
     private var _next : PageRev = null
     override def hasNext: Boolean = {
-      if(_state.isInstanceOf[StateDone])
+      if(_isDone)
         return false
-      while(it.hasNext && !_state.isInstanceOf[StateDone]) {
-        val (stateNext, nextNext) = nextImpl(_state)
+      while(it.hasNext && !_isDone) {
+        val (stateNext, isDone, nextNext) = nextImpl(_state)
         _state = stateNext
+        _isDone = isDone
         if(nextNext.isDefined) {
           _next = nextNext.get
           return true
