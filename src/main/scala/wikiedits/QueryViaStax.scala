@@ -25,9 +25,9 @@ object QueryViaStax {
     case class StateInitial() extends State
     case class StatePage(page:AttrPage) extends State
     case class StateDone() extends State
-    var state : State = StateInitial()
+    var _state : State = StateInitial()
 
-    private def nextImpl():(State,Option[PageRev]) = {
+    private def nextImpl(state:State):(State,Option[PageRev]) = {
       val el = it.next()
       state match {
         case StateInitial() =>
@@ -64,11 +64,11 @@ object QueryViaStax {
 
     private var _next : PageRev = null
     override def hasNext: Boolean = {
-      if(state.isInstanceOf[StateDone])
+      if(_state.isInstanceOf[StateDone])
         return false
-      while(it.hasNext && !state.isInstanceOf[StateDone]) {
-        val (stateNext, nextNext) = nextImpl()
-        state = stateNext
+      while(it.hasNext && !_state.isInstanceOf[StateDone]) {
+        val (stateNext, nextNext) = nextImpl(_state)
+        _state = stateNext
         if(nextNext.isDefined) {
           _next = nextNext.get
           return true
