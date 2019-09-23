@@ -100,7 +100,7 @@ class TestXml extends FunSpec {
         for(pageRev <- it) {
           c += 1
         }
-        println(s"found ${c} events")
+        println(s"found ${c} events in small input")
         assert(c>0)
       }
       it("should find revisions in a small input") {
@@ -110,7 +110,15 @@ class TestXml extends FunSpec {
           c += 1
           println(s"found ${pageRev}")
         }
-        println(s"found ${c} revisions")
+        println(s"found ${c} revisions in small input")
+        assert(c>0)
+      }
+      it("should find events in a large input") {
+        var c = 0
+        for(el <- getXml1Second()) {
+          c += 1
+        }
+        println(s"found ${c} events in 1s input")
         assert(c>0)
       }
       it("should find revisions in a large input") {
@@ -118,7 +126,7 @@ class TestXml extends FunSpec {
         for(pageRev <- QueryViaStax.findPageRevisions(getXml1Second())) {
           c += 1
         }
-        println(s"found ${c} revisions")
+        println(s"found ${c} revisions in 1s input")
         assert(c>0)
       }
 
