@@ -69,14 +69,10 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
-  val pathTestIn1 = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+  val pathTestIn1 = "./enwiki-latest-pages-meta-history1.xml-p1043p2036-300MB.7z"
 
   def getXml1Second() = {
-    ParseUtil.Shorten(
-      ParseViaStax.loadAndDecompress(pathTestIn1),
-      "page",
-      1018
-    )
+    ParseViaStax.loadAndDecompress(pathTestIn1, inTest=true)
   }
 
   describe("decompression") {
