@@ -69,6 +69,77 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
+  val xmlInput2 =
+    """<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-
+      |instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.10/ http://www.mediawiki.org/xml/expo
+      |rt-0.10.xsd" version="0.10" xml:lang="en">
+      |  <page>
+      |    <title>Northern cavefish</title>
+      |    <ns>0</ns>
+      |    <id>1043</id>
+      |    <revision>
+      |      <id>234542</id>
+      |      <parentid>307361776</parentid>
+      |      <timestamp>2001-06-27T12:56:51Z</timestamp>
+      |      <contributor>
+      |        <username>Larry Sanger</username>
+      |        <id>216</id>
+      |      </contributor>
+      |      <text xml:space="preserve"></text>
+      |      <sha1>3wzg88fiapsv6bo154zh40veeogbjnj</sha1>
+      |    </revision>
+      |    <revision>
+      |      <id>1057448</id>
+      |      <parentid>234542</parentid>
+      |      <timestamp>2002-02-25T15:51:15Z</timestamp>
+      |      <contributor>
+      |        <username>Conversion script</username>
+      |        <id>1226483</id>
+      |      </contributor>
+      |      <minor />
+      |      <comment>Automated conversion</comment>
+      |      <model>wikitext</model>
+      |      <format>text/x-wiki</format>
+      |      <text xml:space="preserve"></text>
+      |      <sha1>qdn6psb4rbw59h3yuedhhbw94awzj7v</sha1>
+      |    </revision>
+      |  </page>
+      |    <page>
+      |    <title>Talk:Abandonment (legal)</title>
+      |    <ns>1</ns>
+      |    <id>1045</id>
+      |    <revision>
+      |      <id>15899550</id>
+      |      <timestamp>2002-02-25T15:43:11Z</timestamp>
+      |      <contributor>
+      |        <username>Conversion script</username>
+      |        <id>1226483</id>
+      |      </contributor>
+      |      <minor />
+      |      <comment>Automated conversion</comment>
+      |      <model>wikitext</model>
+      |      <format>text/x-wiki</format>
+      |      <text xml:space="preserve"></text>
+      |      <sha1>6xw3k93fdspbs09nxfoknbylsikxpy7</sha1>
+      |    </revision>
+      |    <revision>
+      |      <id>21616712</id>
+      |      <parentid>15899550</parentid>
+      |      <timestamp>2005-08-23T02:23:57Z</timestamp>
+      |      <contributor>
+      |        <username>Ceyockey</username>
+      |        <id>150564</id>
+      |      </contributor>
+      |      <comment>Disambiguation pages</comment>
+      |      <model>wikitext</model>
+      |      <format>text/x-wiki</format>
+      |      <text xml:space="preserve"></text>
+      |      <sha1>o0v01pzm8jm93xtgjullneg5v99qzvs</sha1>
+      |    </revision>
+      |  </page>
+      |</mediawiki>
+    """.stripMargin
+
   val pathTestIn1 = "./enwiki-latest-pages-meta-history1.xml-p1043p2036-300MB.7z"
 
   def getXml1Second() = {
@@ -108,6 +179,16 @@ class TestXml extends FunSpec {
         }
         println(s"found ${c} revisions in small input")
         assert(c>0)
+      }
+      it("should find revisions in a small input 2") {
+        val it = ParseViaStax.parseString(xmlInput2)
+        var c = 0
+        for(pageRev <- QueryViaStax.findPageRevisions(it)) {
+          c += 1
+          println(s"found ${pageRev}")
+        }
+        println(s"found ${c} revisions in small input 2")
+        assert(c>=4)
       }
       it("should find events in a large input") {
         var c = 0
