@@ -54,14 +54,27 @@ object ParseViaStax {
         try {
           it.nextEvent()
         } catch {
+          case ex : java.lang.NullPointerException =>
+            quit()
           case ex : javax.xml.stream.XMLStreamException =>
-            done = true
-            XMLEventFactory.newInstance().createEndDocument()
+            quit()
         }
       }
 
       override def head: XMLEvent = {
-        it.peek()
+        try {
+          it.peek()
+        } catch {
+          case ex : java.lang.NullPointerException =>
+            quit()
+          case ex : javax.xml.stream.XMLStreamException =>
+            quit()
+        }
+      }
+
+      private def quit() = {
+        done = true
+        XMLEventFactory.newInstance().createCharacters("")
       }
     }
   }
