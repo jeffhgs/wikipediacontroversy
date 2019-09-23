@@ -64,7 +64,7 @@ object QueryViaStax {
             return (state, false, None)
           }
         case StatePage(page) =>
-          if(el.isEndElement) {
+          if(it.depth == 1 && el.isEndElement) {
             return (StateInitial(), false, None)
           }
           else if (el.isStartElement && el.asStartElement().getName().getLocalPart == "revision") {
@@ -82,7 +82,13 @@ object QueryViaStax {
             val pagerev = PageRev(page, rev)
             return (state, false, Some(pagerev))
           } else {
-            return (state, true, None)
+            return (state, false, None)
+          }
+        case _ =>
+          if(it.depth == 0 && el.isEndElement) {
+            return (StateInitial(), true, None)
+          } else {
+            return (state, false, None)
           }
       }
     }
