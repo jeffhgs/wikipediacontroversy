@@ -18,8 +18,6 @@ object ParseViaStax {
   def parse(is: InputStream) = {
     import javax.xml.stream.XMLInputFactory
     val factory = XMLInputFactory.newInstance
-    //factory.setProperty(XMLConstants.FEATURE_SECURE_PROCESSING, false)
-    //factory.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
     val it = factory.createXMLEventReader(is)
     new BufferedIterator[XMLEvent]() {
       override def hasNext: Boolean = {
