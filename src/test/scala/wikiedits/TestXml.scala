@@ -69,10 +69,19 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
+  val pathTestIn1 = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
+
+  def getXml1Second() = {
+    ParseUtil.Shorten(
+      ParseViaStax.loadAndDecompress(pathTestIn1),
+      "page",
+      1018
+    )
+  }
+
   describe("decompression") {
     ignore("should decompress a long stream") {
-      val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
-      val is = Decompress.openLocal7z(java.nio.file.Paths.get(path))
+      val is = Decompress.openLocal7z(java.nio.file.Paths.get(pathTestIn1))
       var c : Long = 0
       var cRead : Long = 0
       val buf :Array[Byte] = Array.fill[Byte](1024*1024)(0)
@@ -105,9 +114,8 @@ class TestXml extends FunSpec {
         assert(c>0)
       }
       it("should find revisions in a large input") {
-        val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadAndDecompress(path))) {
+        for(pageRev <- QueryViaStax.findPageRevisions(getXml1Second())) {
           c += 1
         }
         println(s"found ${c} revisions")
