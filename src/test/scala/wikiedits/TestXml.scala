@@ -107,7 +107,7 @@ class TestXml extends FunSpec {
       it("should find revisions in a large input") {
         val path = "./enwiki-latest-pages-meta-history1.xml-p1043p2036.7z"
         var c = 0
-        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadDecompressAndFindPageRevisions(path))) {
+        for(pageRev <- QueryViaStax.findPageRevisions(ParseViaStax.loadAndDecompress(path))) {
           c += 1
         }
         println(s"found ${c} revisions")

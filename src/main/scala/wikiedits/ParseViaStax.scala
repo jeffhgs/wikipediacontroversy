@@ -5,7 +5,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import javax.xml.stream.events.XMLEvent
 
 object ParseViaStax {
-  def loadDecompressAndFindPageRevisions(path: String) = {
+  def loadAndDecompress(path: String) = {
     val is = Decompress.openLocal7z(java.nio.file.Paths.get(path))
     System.setProperty("jdk.xml.totalEntitySizeLimit", "2000000000")
     parse(is)
