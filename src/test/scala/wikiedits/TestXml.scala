@@ -140,7 +140,7 @@ class TestXml extends FunSpec {
       |</mediawiki>
     """.stripMargin
 
-  val pathTestIn1 = "./enwiki-latest-pages-meta-history1.xml-p1043p2036-300MB.7z"
+  val pathTestIn1 = "./data/enwiki-latest-pages-meta-history1.xml-p1043p2036-300MB.7z"
 
   def getXml1Second() = {
     ParseViaStax.loadAndDecompress(pathTestIn1, inTest=true)
