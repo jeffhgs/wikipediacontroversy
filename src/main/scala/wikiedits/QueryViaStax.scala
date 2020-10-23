@@ -93,4 +93,26 @@ object QueryViaStax {
       }
     }
   }
+
+  case class RevCount(page:AttrPage, numReverts:Int, num:Int)
+
+  case class countReverts(it0 : Iterator[PageRev]) extends TransIterator[Option[(AttrPage,Seq[AttrRev])],RevCount](None) {
+    val it = it0.buffered
+    override def trans(state: Option[(AttrPage,Seq[AttrRev])]): (Option[(AttrPage,Seq[AttrRev])], Boolean, Option[RevCount]) = {
+      if(!it.hasNext)
+        return (None, true, None)
+      val el = it.next()
+      if(state.isEmpty)
+        return (Some((el.page,Seq(el.rev))), false, None)
+      if(state.get._1.idpage == el.page.idpage) {
+        val revs = el.rev +: state.get._2
+        return (Some((el.page, revs)), false, None)
+      } else {
+        // eval and expunge
+        val num = state.get._2.length
+        val numReverts = num - state.get._2.map(_.sha1).toSet.size
+        return (Some((el.page,Seq(el.rev))), false, Some(RevCount(state.get._1, numReverts, num)))
+      }
+    }
+  }
 }

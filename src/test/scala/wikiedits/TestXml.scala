@@ -206,6 +206,23 @@ class TestXml extends FunSpec {
         println(s"found ${c} revisions in 1s input")
         assert(c>0)
       }
+      it("countReverts should find reverts in a large input") {
+        var numPages = 0
+        var numPagesIncomplete = 0
+        var numPagesReverted = 0
+        var numReverts = 0
+        for(page <- QueryViaStax.countReverts(
+          for(pagerev <- QueryViaStax.findPageRevisions(getXml1Second());
+              if pagerev.page.idpage.length >= 1 && pagerev.rev.sha1.length >= 1
+          ) yield pagerev
+        )) {
+          numPages += 1
+          if(page.numReverts > 0)
+            numPagesReverted += 1
+          numReverts += page.numReverts
+        }
+        println(s"found ${numPages} pages, ${numPagesReverted} reverted, and ${numReverts} reverts")
+      }
 
     }
     def elsTest(st: String) = {

@@ -65,7 +65,7 @@ object TraverseViaStax {
   }
 
   def innerText(els:Seq[XMLEvent]) = {
-    els.filter(_.isCharacters).map(_.asCharacters()).mkString("")
+    els.filter(_.isCharacters).map(_.asCharacters()).mkString("").trim()
   }
 
   case class DepthXmlEventReader(it: BufferedIterator[XMLEvent]) extends BufferedIterator[XMLEvent] {
