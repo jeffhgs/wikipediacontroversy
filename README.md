@@ -30,6 +30,18 @@ Crafting the controversy score to mimicking an existing a priori notion of contr
 
 # Implementation
 
+## On efficiency
+
+Efficiency of traversing the input is emphasized in the code.  Why?  The edit history consists of repeated copies of each version of an article.  Each version falls under an XML element.  A .7z compression filter follows the XML stream encoding.  Because most edits are small compared to the size of the article, the data is able to compress around 300x.  So when looking at a 0.2GB dump, we must actually process 60GB of uncompressed data.  Dump files vary significantly in size.
+
+Therefore, it is of the utmost importance to keep memory footprint small.  STAX is used to stream the XML while only holding onto the data most essential to the computation.
+
+## On scoring
+
+For purposes of assessing controversy, why might we be interested in edits that are not straight rollbacks?  Imagine one piece of text in an article was put up 10 years ago and remains there unedited.  Now imagine another piece of text was edited 10 seconds before the dump was taken.  When assessing controversy, we might want to understand the age of each piece of text.
+
+Most programmers are familiar with a feature of version control that git and subversion call "blame".  Blame assigns an age to each piece of text in a final document.  The usual algorithm involves applying an algorithm called "Longest Common Subsequence" (LCS) to each edit.  Even an efficient implementation of LCS can cost (as a function of article size) O(N^2) time in the worst case.  So we might want to extract age of text, but we might want to reserve the extraction only for a subset of articles.
+
 ## Implementation: Test the code WIP
 
 An automated test suite can be run with JDK 8 and sbt, with the command:
